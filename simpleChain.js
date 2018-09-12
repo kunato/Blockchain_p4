@@ -16,9 +16,10 @@ class Blockchain {
   }
 
   async addGenesisBlock() {
-    if (!(await this.getBlock(0))) {
+    //If BlockHeight === 0 add the genesis block
+    if (this.getBlockHeight() === 0) {
       let genesis = new Block('First block in the chain - Genesis block');
-      await this.addBlock(genesis);
+      console.log(await this.addBlock(genesis));
     }
   }
 
