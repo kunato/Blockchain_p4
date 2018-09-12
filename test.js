@@ -18,6 +18,10 @@ async function run(i) {
     const blockTest = new Block.Block('Test Block - ' + (i + 1));
     const result = await blockchain.addBlock(blockTest);
   }
+  await blockchain.getBlock(10);
+  await blockchain.getBlock(11);
+  await blockchain.validateBlock(10);
+  await blockchain.validateBlock(11);
   console.log(
     'chainstate after add 10 block: ',
     await blockchain.validateChain()

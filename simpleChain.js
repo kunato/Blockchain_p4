@@ -4,20 +4,7 @@
 
 const SHA256 = require('crypto-js/sha256');
 const db = require('./levelSandbox');
-
-/* ===== Block Class ==============================
-|  Class with a constructor for block 			   |
-|  ===============================================*/
-
-class Block {
-  constructor(data) {
-    (this.hash = ''),
-      (this.height = 0),
-      (this.body = data),
-      (this.time = 0),
-      (this.previousBlockHash = '');
-  }
-}
+const block = require('./Block');
 
 /* ===== Blockchain Class ==========================
 |  Class with a constructor for new blockchain 		|
@@ -25,8 +12,14 @@ class Block {
 
 class Blockchain {
   constructor() {
-    let genesis = new Block('First block in the chain - Genesis block');
-    this.addBlock(genesis);
+    this.addGenesisBlock();
+  }
+
+  async addGenesisBlock() {
+    if (!(await this.getBlock(0))) {
+      let genesis = new Block('First block in the chain - Genesis block');
+      await this.addBlock(genesis);
+    }
   }
 
   // Add new block
@@ -65,31 +58,42 @@ class Blockchain {
 
   // get block
   async getBlock(blockHeight) {
-    // return object as a single string
-    return JSON.parse(await db.getLevelDBData(blockHeight));
+    try {
+      // return object as a single string
+      return JSON.parse(await db.getLevelDBData(blockHeight));
+    } catch (e) {
+      return;
+    }
   }
 
   // validate block
   async validateBlock(blockHeight) {
-    // get block object
-    let block = await this.getBlock(blockHeight);
-    // get block hash
-    const blockHash = block.hash;
-    // remove block hash to test block integrity
-    block.hash = '';
-    // generate block hash
-    const validBlockHash = SHA256(JSON.stringify(block)).toString();
-    // Compare
-    if (blockHash === validBlockHash) {
-      return true;
-    } else {
+    try {
+      // get block object
+      let block = await this.getBlock(blockHeight);
+      // get block hash
+      const blockHash = block.hash;
+      // remove block hash to test block integrity
+      block.hash = '';
+      // generate block hash
+      const validBlockHash = SHA256(JSON.stringify(block)).toString();
+      // Compare
+      if (blockHash === validBlockHash) {
+        return true;
+      } else {
+        console.log(
+          'Block #' +
+            blockHeight +
+            ' invalid hash:\n' +
+            blockHash +
+            '<>' +
+            validBlockHash
+        );
+        return false;
+      }
+    } catch (e) {
       console.log(
-        'Block #' +
-          blockHeight +
-          ' invalid hash:\n' +
-          blockHash +
-          '<>' +
-          validBlockHash
+        'Block #' + blockHeight + ' cannot be validate because it is not exist'
       );
       return false;
     }
@@ -122,6 +126,6 @@ class Blockchain {
   }
 }
 module.exports = {
-  Block: Block,
+  Block: block.Block,
   Blockchain: Blockchain
 };
