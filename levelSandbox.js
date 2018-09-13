@@ -5,21 +5,44 @@
 const level = require('level');
 const chainDB = './chaindata';
 const db = level(chainDB);
-let blockHeight = 1;
 
 // Add data to levelDB with key/value pair
 async function addLevelDBData(key, value) {
   try {
     await db.put(key, value);
-    const keyNumber = Number.parseInt(key);
-    blockHeight = keyNumber + 1;
   } catch (e) {
     return console.log('Block ' + key + ' submission failed', err);
   }
 }
 
-function getLevelDBObjectCount() {
-  return blockHeight;
+async function getLevelDBObjectCount() {
+  try {
+    const result = await getLastBlockLevelDB();
+    return result + 1;
+  } catch (e) {
+    return 0;
+  }
+}
+
+function getLastBlockLevelDB(value) {
+  let lastBlock = {};
+  let highestHeight = -1;
+  return new Promise((resolve, reject) => {
+    db.createReadStream()
+      .on('data', function(data) {
+        lastBlock = JSON.parse(data.value);
+        if (highestHeight < lastBlock.height) {
+          highestHeight = lastBlock.height;
+        }
+      })
+      .on('error', function(err) {
+        console.log('Unable to read data stream!', err);
+        reject(err);
+      })
+      .on('close', function() {
+        resolve(highestHeight);
+      });
+  });
 }
 
 // Get data from levelDB with key

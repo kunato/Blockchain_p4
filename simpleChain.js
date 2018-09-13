@@ -11,21 +11,22 @@ const block = require('./Block');
 |  ================================================*/
 
 class Blockchain {
-  constructor() {
-    this.addGenesisBlock();
-  }
+  constructor() {}
 
   async addGenesisBlock() {
     //If BlockHeight === 0 add the genesis block
-    if (this.getBlockHeight() === 0) {
-      let genesis = new Block('First block in the chain - Genesis block');
-      console.log(await this.addBlock(genesis));
+    if ((await this.getBlockHeight()) === 0) {
+      let genesis = new block.Block('First block in the chain - Genesis block');
+      console.log(await this.addBlock(genesis, true));
     }
   }
 
   // Add new block
-  async addBlock(newBlock) {
-    const currentBlockHeight = this.getBlockHeight();
+  async addBlock(newBlock, isGenesisBlock = false) {
+    if (!isGenesisBlock && (await this.getBlockHeight()) === 0) {
+      await this.addGenesisBlock();
+    }
+    const currentBlockHeight = await this.getBlockHeight();
     // Block height
     newBlock.height = currentBlockHeight;
     // UTC timestamp
@@ -45,6 +46,7 @@ class Blockchain {
       currentBlockHeight,
       JSON.stringify(newBlock).toString()
     );
+    console.log('Block # ' + currentBlockHeight + ' added');
     return newBlock;
   }
 
@@ -53,8 +55,8 @@ class Blockchain {
   }
 
   // Get block height
-  getBlockHeight() {
-    return db.getLevelDBObjectCount();
+  async getBlockHeight() {
+    return await db.getLevelDBObjectCount();
   }
 
   // get block
@@ -103,7 +105,7 @@ class Blockchain {
   // Validate blockchain
   async validateChain() {
     let errorLog = [];
-    for (var i = 1; i < this.getBlockHeight() - 1; i++) {
+    for (var i = 1; i < (await this.getBlockHeight()) - 1; i++) {
       // validate block
       if (!(await this.validateBlock(i))) {
         errorLog.push(i);

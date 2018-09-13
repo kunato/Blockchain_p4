@@ -13,8 +13,8 @@ const Block = require('./simpleChain');
 
 const blockchain = new Block.Blockchain();
 
-async function run(i) {
-  for (let i = 0; i < 10; i++) {
+async function run() {
+  for (let i = 0; i < 12; i++) {
     const blockTest = new Block.Block('Test Block - ' + (i + 1));
     const result = await blockchain.addBlock(blockTest);
   }
@@ -24,6 +24,7 @@ async function run(i) {
   await blockchain.validateBlock(10);
   console.log('try validateBlock(11)');
   await blockchain.validateBlock(11);
+
   console.log(
     'chainstate after add 10 block: ',
     await blockchain.validateChain()
@@ -41,4 +42,4 @@ async function run(i) {
   }
   console.log('chainstate after corrupt : ', await blockchain.validateChain());
 }
-run(0);
+run();
