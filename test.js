@@ -11,35 +11,41 @@ const Block = require('./simpleChain');
 |     ( new block every 10 minutes )                                           |
 |  ===========================================================================*/
 
-const blockchain = new Block.Blockchain();
+const blockchain = Block.Blockchain.getInstance();
 
 async function run() {
-  for (let i = 0; i < 12; i++) {
-    const blockTest = new Block.Block('Test Block - ' + (i + 1));
-    const result = await blockchain.addBlock(blockTest);
-  }
-  await blockchain.getBlock(10);
-  console.log('try getBlock(11)');
-  await blockchain.getBlock(11);
-  await blockchain.validateBlock(10);
-  console.log('try validateBlock(11)');
-  await blockchain.validateBlock(11);
+    for (let i = 0; i < 12; i++) {
+        const blockTest = new Block.Block('Test Block - ' + (i + 1));
+        const result = await blockchain.addBlock(blockTest);
+    }
+    await blockchain.getBlock(10);
+    console.log('try getBlock(11)');
+    await blockchain.getBlock(11);
+    await blockchain.validateBlock(10);
+    console.log('try validateBlock(11)');
+    await blockchain.validateBlock(11);
 
-  console.log(
-    'chainstate after add 10 block: ',
-    await blockchain.validateChain()
-  );
-  let inducedErrorBlocks = [2, 4, 7];
-  for (var i = 0; i < inducedErrorBlocks.length; i++) {
-    let corruptBlock = await blockchain
-      .getRawDB()
-      .getLevelDBData(inducedErrorBlocks[i]);
-    let corruptBlockObj = JSON.parse(corruptBlock);
-    corruptBlockObj.body = 'bug';
-    await blockchain
-      .getRawDB()
-      .addLevelDBData(inducedErrorBlocks[i], JSON.stringify(corruptBlockObj));
-  }
-  console.log('chainstate after corrupt : ', await blockchain.validateChain());
+    console.log(
+        'chainstate after add 10 block: ',
+        await blockchain.validateChain()
+    );
+    let inducedErrorBlocks = [2, 4, 7];
+    for (var i = 0; i < inducedErrorBlocks.length; i++) {
+        let corruptBlock = await blockchain
+            .getRawDB()
+            .getLevelDBData(inducedErrorBlocks[i]);
+        let corruptBlockObj = JSON.parse(corruptBlock);
+        corruptBlockObj.body = 'bug';
+        await blockchain
+            .getRawDB()
+            .addLevelDBData(
+                inducedErrorBlocks[i],
+                JSON.stringify(corruptBlockObj)
+            );
+    }
+    console.log(
+        'chainstate after corrupt : ',
+        await blockchain.validateChain()
+    );
 }
 run();
