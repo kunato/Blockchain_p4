@@ -8,6 +8,7 @@ const blockchainPlugin = {
     name: 'blockchainPlugin',
     version: '1.0.0',
     register: async function(server, options) {
+        await Blockchain.getInstance().addGenesisBlock();
         server.route({
             method: 'GET',
             path: '/block/{name}',
@@ -24,7 +25,7 @@ const blockchainPlugin = {
 
         server.route({
             method: 'POST',
-            path: '/block/',
+            path: '/block',
             options: {
                 payload: {
                     allow: 'application/json'
