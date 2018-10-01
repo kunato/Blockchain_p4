@@ -4,20 +4,32 @@
 npm install
 ```
 
-Test the blockchain program by running
+# Start Server by running
 
 ```
-node test.js
+node server.js
 ```
 
-# Using simpleChain as library
+##### Hapi is used for a server
 
-simpleChain is only a library
-You can use it by import using
+# End Point
+
+#### GET
 
 ```
-const b = require('./simpleChain');
-let blockchain = new b.Blockchain();
-let block = new b.Block('Hello I am Block 1');
-await blockchain.addBlock(block);
+GET localhost:8080/block/20 // Get Block #20
+```
+
+#### POST
+
+```
+POST localhost:8080/block/ // Add new block to the chain
+```
+
+POST body is type application/json with a payload of
+
+```
+{
+    "body": "Testing block with test string data"
+}
 ```
