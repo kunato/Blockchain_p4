@@ -49,6 +49,7 @@ typings/
 .node_repl_history
 
 chaindata/
+userdata/
 
 # Output of 'npm pack'
 *.tgz

@@ -1,9 +1,10 @@
+// ts-check*
 /* ===== SHA256 with Crypto-js ===============================
 |  Learn more: Crypto-js: https://github.com/brix/crypto-js  |
 |  =========================================================*/
 
 const SHA256 = require('crypto-js/sha256');
-const db = require('./levelSandbox');
+const db = require('./chaindb');
 const block = require('./block');
 
 /* ===== Blockchain Class ==========================
@@ -38,7 +39,7 @@ class Blockchain {
             .slice(0, -3);
         // previous block hash
         if (currentBlockHeight > 0) {
-            const previousBlock = await db.getLevelDBData(
+            const previousBlock = await db.getBlockLevel(
                 currentBlockHeight - 1
             );
             newBlock.previousBlockHash = JSON.parse(previousBlock).hash;
@@ -46,7 +47,7 @@ class Blockchain {
         // Block hash with SHA256 using newBlock and converting to a string
         newBlock.hash = SHA256(JSON.stringify(newBlock)).toString();
         // Adding block object to chain
-        await db.addLevelDBData(
+        await db.addBlockLevel(
             currentBlockHeight,
             JSON.stringify(newBlock).toString()
         );
@@ -60,17 +61,35 @@ class Blockchain {
 
     // Get block height
     async getBlockHeight() {
-        return await db.getLevelDBObjectCount();
+        return await db.getObjectCountLevel();
     }
 
     // get block
     async getBlock(blockHeight) {
         try {
             // return object as a single string
-            return JSON.parse(await db.getLevelDBData(blockHeight));
+            return JSON.parse(await db.getBlockLevel(blockHeight));
         } catch (e) {
             console.log(`blockHeight ${blockHeight} not found`);
             throw new Error(`blockHeight ${blockHeight} not found`);
+        }
+    }
+
+    async getBlockByHash(hash) {
+        try {
+            return JSON.parse(await db.getBlockByHashLevel(hash));
+        } catch (e) {
+            console.log(`hash ${hash} not found`);
+            throw new Error(`hash ${hash} not found`);
+        }
+    }
+
+    async getBlockByAddress(address) {
+        try {
+            return JSON.parse(await db.getBlockByAddressLevel(address));
+        } catch (e) {
+            console.log(`address ${address} not found`);
+            throw new Error(`address ${address} not found`);
         }
     }
 
@@ -78,7 +97,7 @@ class Blockchain {
     async validateBlock(blockHeight) {
         try {
             // get block object
-            let block = await this.getBlock(blockHeight);
+            const block = await this.getBlock(blockHeight);
             // get block hash
             const blockHash = block.hash;
             // remove block hash to test block integrity
@@ -118,8 +137,8 @@ class Blockchain {
                 errorLog.push(i);
             }
             // compare blocks hash link
-            const blockHash = JSON.parse(await db.getLevelDBData(i)).hash;
-            const previousHash = JSON.parse(await db.getLevelDBData(i + 1))
+            const blockHash = JSON.parse(await db.getBlockLevel(i)).hash;
+            const previousHash = JSON.parse(await db.getBlockLevel(i + 1))
                 .previousBlockHash;
             if (blockHash !== previousHash) {
                 errorLog.push(i);

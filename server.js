@@ -11,6 +11,8 @@ async function start() {
     try {
         // Register BlockChain plugins
         await server.register(require('./blockchain.plugin'));
+        // Register User plugins
+        await server.register(require('./user.plugin'));
         await server.start();
     } catch (err) {
         console.log(err);
