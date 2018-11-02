@@ -77,7 +77,7 @@ class Blockchain {
 
     async getBlockByHash(hash) {
         try {
-            return JSON.parse(await db.getBlockByHashLevel(hash));
+            return await db.getBlockByHashLevel(hash);
         } catch (e) {
             console.log(`hash ${hash} not found`);
             throw new Error(`hash ${hash} not found`);
@@ -86,7 +86,7 @@ class Blockchain {
 
     async getBlockByAddress(address) {
         try {
-            return JSON.parse(await db.getBlockByAddressLevel(address));
+            return await db.getBlockByAddressLevel(address);
         } catch (e) {
             console.log(`address ${address} not found`);
             throw new Error(`address ${address} not found`);

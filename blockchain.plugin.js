@@ -82,7 +82,7 @@ const blockchainPlugin = {
                         }
                     };
                 } catch (_e) {
-                    return boom.badRequest('Invalid Block');
+                    return boom.badRequest('Invalid hash');
                 }
             }
         });
@@ -97,18 +97,13 @@ const blockchainPlugin = {
                 },
                 validate: {
                     payload: joi.object().keys({
-                        body: joi
+                        address: joi.string().required(),
+                        star: joi
                             .object()
                             .keys({
-                                address: joi.string().required(),
-                                star: joi
-                                    .object()
-                                    .keys({
-                                        dec: joi.string().required(),
-                                        ra: joi.string().required(),
-                                        story: joi.string().required()
-                                    })
-                                    .required()
+                                dec: joi.string().required(),
+                                ra: joi.string().required(),
+                                story: joi.string().required()
                             })
                             .required()
                     })
@@ -116,16 +111,15 @@ const blockchainPlugin = {
             },
             handler: async function(request, h) {
                 try {
-                    const { body } = request.payload;
-                    const { address } = body;
+                    const { address, star } = request.payload;
                     const user = await userDB.getUserLevel(address);
                     if (user.registerStar) {
                         return await Blockchain.getInstance().addBlock(
                             new Block({
-                                ...body,
+                                address,
                                 star: {
-                                    ...body.star,
-                                    story: new Buffer(body.star.story).toString(
+                                    ...star,
+                                    story: new Buffer(star.story).toString(
                                         'hex'
                                     )
                                 }
@@ -133,11 +127,12 @@ const blockchainPlugin = {
                         );
                     } else {
                         return boom.badRequest(
-                            'User has no permission to register stars'
+                            'Address has no permission to register stars'
                         );
                     }
                 } catch (_e) {
-                    return boom.badImplementation('Something went wrong');
+                    console.log(_e);
+                    return boom.badRequest('Address not found');
                 }
             }
         });

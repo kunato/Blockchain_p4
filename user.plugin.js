@@ -1,6 +1,7 @@
 'use strict';
 const boom = require('boom');
 const joi = require('joi');
+const bitcoinMessage = require('bitcoinjs-message');
 const userDB = require('./userdb');
 
 const userPlugin = {
@@ -22,9 +23,9 @@ const userPlugin = {
             },
             handler: async function(request, h) {
                 const { address } = request.payload;
-                requestTimeStamp = Date.now();
-                message = `${address}:${requestTimeStamp}:starRegistry`;
-                validationWindow = 300;
+                const requestTimeStamp = Date.now();
+                const message = `${address}:${requestTimeStamp}:starRegistry`;
+                const validationWindow = 300;
                 const user = await userDB.addUserLevel(address, {
                     address,
                     requestTimeStamp,
@@ -53,6 +54,7 @@ const userPlugin = {
                 const { address, signature } = request.payload;
                 let user = await userDB.getUserLevel(address);
                 const { requestTimeStamp, validationWindow, message } = user;
+                console.log(user);
                 const valid = bitcoinMessage.verify(
                     message,
                     address,

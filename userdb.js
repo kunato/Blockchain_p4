@@ -4,7 +4,7 @@ const db = level(chainDB);
 
 async function addUserLevel(address, value) {
     try {
-        await db.put(address, value);
+        await db.put(address, JSON.stringify(value));
         return value;
     } catch (e) {
         return console.log('Address ' + address + ' submission failed', err);
@@ -13,7 +13,7 @@ async function addUserLevel(address, value) {
 
 async function getUserLevel(address) {
     try {
-        const value = await db.get(address);
+        const value = JSON.parse(await db.get(address));
         return value;
     } catch (e) {
         console.log('Error : Cannot find User with address ' + address);
