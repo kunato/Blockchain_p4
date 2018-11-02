@@ -103,7 +103,11 @@ const blockchainPlugin = {
                             .keys({
                                 dec: joi.string().required(),
                                 ra: joi.string().required(),
-                                story: joi.string().required()
+                                story: joi
+                                    .string()
+                                    .max(500)
+                                    .regex(/^[\x00-\x7F]*$/)
+                                    .required()
                             })
                             .required()
                     })
@@ -114,6 +118,10 @@ const blockchainPlugin = {
                     const { address, star } = request.payload;
                     const user = await userDB.getUserLevel(address);
                     if (user.registerStar) {
+                        await userDB.addUserLevel(address, {
+                            ...user,
+                            registerStar: false
+                        });
                         return await Blockchain.getInstance().addBlock(
                             new Block({
                                 address,
