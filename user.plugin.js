@@ -27,24 +27,19 @@ const userPlugin = {
                     const user = await userDB.getUserLevel(address);
                     const newRequestTimeStamp = Date.now();
                     if (
-                        user.requestTimeStamp + user.validationWindow * 1000 >
+                        user.requestTimeStamp + 300 * 1000 >
                         newRequestTimeStamp
                     ) {
-                        console.log('newRequestTimeStamp');
                         const validationWindow =
-                            user.validationWindow -
+                            300 -
                             (newRequestTimeStamp - user.requestTimeStamp) /
                                 1000;
-                        const message = `${address}:${newRequestTimeStamp}:starRegistry`;
-                        const requestTimeStamp = newRequestTimeStamp;
                         return await userDB.addUserLevel(address, {
-                            address,
-                            requestTimeStamp,
-                            message,
+                            ...user,
                             validationWindow
                         });
                     } else {
-                        throw new Error('Address requset are now invalid');
+                        throw new Error('Address request are now invalid');
                     }
                 } catch (_e) {
                     const requestTimeStamp = Date.now();
@@ -78,20 +73,24 @@ const userPlugin = {
             handler: async function(request, h) {
                 const { address, signature } = request.payload;
                 let user = await userDB.getUserLevel(address);
-                const { requestTimeStamp, validationWindow, message } = user;
+                const { requestTimeStamp, message } = user;
                 const valid = bitcoinMessage.verify(
                     message,
                     address,
                     signature
                 );
+                const newRequestTimeStamp = Date.now();
                 if (
                     valid &&
-                    requestTimeStamp + 1000 * validationWindow > Date.now()
+                    requestTimeStamp + 1000 * 300 > newRequestTimeStamp
                 ) {
+                    const validationWindow =
+                        300 - (newRequestTimeStamp - requestTimeStamp) / 1000;
                     user = await userDB.addUserLevel(address, {
                         registerStar: true,
                         status: {
                             ...user,
+                            validationWindow,
                             messageSignature: 'valid'
                         }
                     });
